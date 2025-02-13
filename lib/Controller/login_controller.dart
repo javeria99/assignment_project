@@ -1,11 +1,11 @@
 
 import 'package:assigment_project/Constant/color.dart';
+import 'package:assigment_project/Constant/constant.dart';
 import 'package:assigment_project/Widget/snack._bar.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:path/path.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:sqflite/sqflite.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 class LoginController extends GetxController {
   
@@ -21,27 +21,30 @@ class LoginController extends GetxController {
     }
     return true;
   }
-  Future<void> login() async {
+Future<void> login() async {
+ 
+  final supabase = SupabaseClient(supBaseUrl, supBaseKey);
+
+  String userName = userNameController.text;
+  String password = passwordController.text;
+
+  final response = await supabase
+      .from('User')
+      .select('id, name, password')
+      .eq('name', userName)
+      .eq('password', password)
+      .single()
+      .execute();
+
+  if (response.error == null && response.data != null) {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    var databasesPath = await getDatabasesPath();
-    String path = join(databasesPath, 'student.db');
-    Database database = await openDatabase(path, version: 1);
-    List<Map> userList = await database.rawQuery('SELECT * FROM User');
-     bool checkflag = false;
-      for (var user in userList) {
-        if (user['name'] == userNameController.text && user['password']==passwordController.text) {
-          prefs.setBool('didLogin', true);
-        showCustomSnackbar(
-            'Congratulation', 'Successfully Login', appMainColor);
-        Get.offNamedUntil('/dashBoardPage', (route) => false);
-            checkflag=true;
-          break;
-        } else {
-          checkflag = false;
-        }
-      }
-      if (checkflag == false) {
-        showCustomSnackbar('Warning', 'Incorrect user name & password', Colors.red);
-      } 
+    prefs.setBool('didLogin', true);
+
+    showCustomSnackbar('Congratulation', 'Successfully Login', appMainColor);
+
+    Get.offNamedUntil('/dashBoardPage', (route) => false);
+  } else {
+    showCustomSnackbar('Warning', 'Incorrect user name & password', Colors.red);
   }
+}
 }

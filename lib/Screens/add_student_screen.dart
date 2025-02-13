@@ -1,11 +1,11 @@
 import 'package:assigment_project/Constant/color.dart';
 import 'package:assigment_project/Constant/constant.dart';
 import 'package:assigment_project/Widget/button.dart';
+import 'package:assigment_project/Widget/snack._bar.dart';
 import 'package:assigment_project/Widget/text_field.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:path/path.dart';
-import 'package:sqflite/sqflite.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 class AddStudentScreen extends StatefulWidget {
   const AddStudentScreen({super.key});
 
@@ -21,7 +21,7 @@ class _AddStudentScreenState extends State<AddStudentScreen> {
       addEditController.classController.text="";
       addEditController.sectionController.text="";
       addEditController.selectedCourseIds.clear();
-      if(addEditController.isEdit.value=true){
+      if(addEditController.isEdit.value==true){
         addEditController.nameController.text=dashboardController.student['name'];
         addEditController.classController.text=dashboardController.student['class'].toString();
         addEditController.sectionController.text=dashboardController.student['section'];
@@ -32,23 +32,33 @@ class _AddStudentScreenState extends State<AddStudentScreen> {
   }
   
     Future<void> getEnrollCourse() async {
-    var databasesPath = await getDatabasesPath();
-    String path = join(databasesPath, 'student.db');
-    Database database = await openDatabase(path);
-    var result = await database.rawQuery('SELECT * FROM Enrollment');
-    
-    for (var check in result){
-      if(check['student_id']==dashboardController.student['id']){
-        addEditController.selectedCourseIds.add(check['course_id']);
-        setState(() {
-          addEditController.selectedCourseIds;
-        });
+  await Supabase.initialize(
+    url: supBaseUrl,
+    anonKey: supBaseKey
+  );
+  final client = Supabase.instance.client;
 
-      }
-    }
-    await database.close();
-  
+  final response = await client
+      .from('Enrollment') 
+      .select() 
+      .eq('student_id', dashboardController.student['id']) 
+      .execute(); 
+
+  if (response.error != null) {
+    showCustomSnackbar('Error', 'Failed to fetch enrollment courses: ${response.error!.message}', Colors.red);
+    return;
   }
+
+  List<Map<String, dynamic>> enrollments = List<Map<String, dynamic>>.from(response.data);
+
+  for (var check in enrollments) {
+    addEditController.selectedCourseIds.add(check['course_id']);
+  }
+
+  setState(() {
+    addEditController.selectedCourseIds;
+  });
+}
   @override
   Widget build(BuildContext context) {
     return Scaffold(

@@ -1,10 +1,10 @@
 import 'package:assigment_project/Constant/color.dart';
+import 'package:assigment_project/Constant/constant.dart';
 import 'package:assigment_project/Widget/snack._bar.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:path/path.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:sqflite/sqflite.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 class SignUpController extends GetxController {
   TextEditingController passwordController = TextEditingController();
@@ -21,38 +21,37 @@ class SignUpController extends GetxController {
   }
 
   Future<void> signUp() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    var databasesPath = await getDatabasesPath();
-    String path = join(databasesPath, 'student.db');
-    Database database = await openDatabase(path, version: 1);
-    List<Map> userList = await database.rawQuery('SELECT * FROM User');
-    if (userList.isEmpty) {
-      await database.rawInsert(
-          'INSERT INTO User(name, password) VALUES("$nameController.text}", "${passwordController.text}")');
+  await Supabase.initialize(
+    url: supBaseUrl,
+    anonKey: supBaseKey
+  );
+
+  String name = nameController.text;
+
+  final response = await Supabase.instance.client
+      .from('User') 
+      .select('id')
+      .eq('name', name) 
+      .execute();
+
+  if (response.error == null && response.data != null && response.data.isNotEmpty) {
+    showCustomSnackbar('Warning', 'User already exists', Colors.red);
+  } else {
+    final signUpResponse = await Supabase.instance.client.auth.signUp(
+      nameController.text, 
+      passwordController.text, 
+    );
+
+    if (signUpResponse.error == null) {
+      SharedPreferences prefs = await SharedPreferences.getInstance();
       prefs.setBool('didLogin', true);
-      showCustomSnackbar(
-          'Congratulation', 'Successfully Sign up', appMainColor);
+
+      showCustomSnackbar('Congratulation', 'Successfully Sign up', appMainColor);
+
       Get.offNamedUntil('/dashBoardPage', (route) => false);
     } else {
-      bool checkflag = false;
-      for (var user in userList) {
-        if (user['name'] == nameController.text) {
-          checkflag = false;
-        } else {
-          checkflag = true;
-        }
-      }
-      if (checkflag == true) {
-        await database.rawInsert(
-            'INSERT INTO User(name, password) VALUES("${nameController.text}", "${passwordController.text}")');
-        prefs.setBool('didLogin', true);
-        showCustomSnackbar(
-            'Congratulation', 'Successfully Sign up', appMainColor);
-          Get.offNamedUntil('/dashBoardPage', (route) => false);
-      } else {
-        showCustomSnackbar('Warning', 'User already exist', Colors.red);
-      }
+      showCustomSnackbar('Error', 'Failed to sign up: ${signUpResponse.error?.message}', Colors.red);
     }
-    await database.close();
   }
+}
 }
