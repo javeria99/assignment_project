@@ -1,6 +1,5 @@
 
 import 'package:assigment_project/Constant/color.dart';
-import 'package:assigment_project/Constant/constant.dart';
 import 'package:assigment_project/Widget/snack._bar.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -11,10 +10,10 @@ class DashboardController extends GetxController {
     RxMap<dynamic, dynamic> student = <String, dynamic>{}.obs;
     var courseList = <Map>[].obs;
  Future<void> getStudent() async {
-  await Supabase.initialize(
-    url: supBaseUrl,
-    anonKey: supBaseKey
-  );
+  // await Supabase.initialize(
+  //   url: supBaseUrl,
+  //   anonKey: supBaseKey
+  // );
   final response = await Supabase.instance.client
       .from('Student') 
       .select() 
@@ -30,10 +29,10 @@ class DashboardController extends GetxController {
   studentList.value = studentLists;
 }
 Future<void> getCourse() async {
-   await Supabase.initialize(
-    url: supBaseUrl,
-    anonKey: supBaseKey
-  );
+  //  await Supabase.initialize(
+  //   url: supBaseUrl,
+  //   anonKey: supBaseKey
+  // );
   final response = await Supabase.instance.client
       .from('Course') 
       .select() 
@@ -49,10 +48,10 @@ Future<void> getCourse() async {
   courseList.value = courseLists;
 }
   Future<void> deleteStudent(int id) async {
-  await Supabase.initialize(
-    url: supBaseUrl,
-    anonKey: supBaseKey
-  );
+  // await Supabase.initialize(
+  //   url: supBaseUrl,
+  //   anonKey: supBaseKey
+  // );
   final response = await Supabase.instance.client
       .from('Student') 
       .delete() 

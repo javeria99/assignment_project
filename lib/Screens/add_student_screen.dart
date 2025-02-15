@@ -32,10 +32,10 @@ class _AddStudentScreenState extends State<AddStudentScreen> {
   }
   
     Future<void> getEnrollCourse() async {
-  await Supabase.initialize(
-    url: supBaseUrl,
-    anonKey: supBaseKey
-  );
+  // await Supabase.initialize(
+  //   url: supBaseUrl,
+  //   anonKey: supBaseKey
+  // );
   final client = Supabase.instance.client;
 
   final response = await client

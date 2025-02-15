@@ -1,5 +1,4 @@
 import 'package:assigment_project/Constant/color.dart';
-import 'package:assigment_project/Constant/constant.dart';
 import 'package:assigment_project/Widget/snack._bar.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -21,10 +20,10 @@ class SignUpController extends GetxController {
   }
 
   Future<void> signUp() async {
-  await Supabase.initialize(
-    url: supBaseUrl,
-    anonKey: supBaseKey
-  );
+  // await Supabase.initialize(
+  //   url: supBaseUrl,
+  //   anonKey: supBaseKey
+  // );
 
   String name = nameController.text;
 
